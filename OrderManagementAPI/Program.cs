@@ -16,10 +16,9 @@ namespace OrderManagementAPI
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-            // Register EF Core with SQLite
             builder.Services.AddDbContext<OrderManagementDbContext>(
-                options => options.UseSqlite("Data Source=ordermanagement.db"));
-
+                options => options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 

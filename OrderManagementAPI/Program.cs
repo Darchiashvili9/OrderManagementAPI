@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using OrderManagementAPI.Data;
+
 namespace OrderManagementAPI
 {
     public class Program
@@ -12,6 +15,11 @@ namespace OrderManagementAPI
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+            // Register EF Core with SQLite
+            builder.Services.AddDbContext<OrderManagementDbContext>(
+                options => options.UseSqlite("Data Source=ordermanagement.db"));
+
 
             var app = builder.Build();
 

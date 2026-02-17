@@ -6,11 +6,11 @@ namespace OrderManagementAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CustomerController : ControllerBase
+    public class CustomersController : ControllerBase
     {
         private readonly OrderManagementDbContext _context;
 
-        public CustomerController(OrderManagementDbContext context)
+        public CustomersController(OrderManagementDbContext context)
         {
             _context = context;
         }

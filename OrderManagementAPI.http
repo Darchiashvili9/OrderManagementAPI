@@ -1,16 +1,12 @@
 @OrderManagementAPI_HostAddress = http://localhost:5114/api
 
-GET {{OrderManagementAPI_HostAddress}}/weatherforecast/
-Accept: application/json
 
-###
+
 
 
 GET {{OrderManagementAPI_HostAddress}}/customer
 Accept: application/json
-
 ###
-
 
 POST {{OrderManagementAPI_HostAddress}}/customer
 Content-Type: application/json
@@ -21,3 +17,36 @@ Accept: application/json
   "address": "Tbilisi"
 }
 ###
+
+
+### Get all products
+GET {{OrderManagementAPI_HostAddress}}/products
+Accept: application/json
+
+### Get product by ID
+GET {{OrderManagementAPI_HostAddress}}/products/1
+Accept: application/json
+
+### Create a new product
+POST {{OrderManagementAPI_HostAddress}}/products
+Content-Type: application/json
+
+{
+  "name": "Laptop1",
+  "price": 1100.00,
+  "description": "with 16GB RAM"
+}
+
+### Update an existing product
+PUT {{OrderManagementAPI_HostAddress}}/products/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Laptop Pro",
+  "price": 1500.00,
+  "description": "Upgraded model with 32GB RAM"
+}
+
+### Delete a product
+DELETE {{OrderManagementAPI_HostAddress}}/products/1

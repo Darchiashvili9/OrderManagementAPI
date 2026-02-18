@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OrderManagementAPI.Data;
+using OrderManagementAPI.DTOs;
 using OrderManagementAPI.Models;
 
 namespace OrderManagementAPI.Controllers
@@ -16,47 +18,93 @@ namespace OrderManagementAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(_context.Products.ToList());
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsList()
+        {
+            return await _context.Products
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    Description = p.Description
+                })
+                .ToListAsync();
+        }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<ActionResult<ProductDto>> GetProductById(int id)
         {
-            var product = _context.Products.Find(id);
-            return product == null ? NotFound() : Ok(product);
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+                return NotFound();
+
+            return new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                Description = product.Description
+            };
         }
 
         [HttpPost]
-        public IActionResult Create(Product product)
+        public async Task<ActionResult<ProductDto>> PostProduct(Product product)
         {
             _context.Products.Add(product);
-            _context.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+            await _context.SaveChangesAsync();
+
+            var dto = new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                Description = product.Description
+            };
+
+            return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, dto);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, Product updated)
+        public async Task<ActionResult<ProductDto>> PutProduct(int id, Product product)
         {
-            var product = _context.Products.Find(id);
-            if (product == null) return NotFound();
+            if (id != product.Id)
+                return BadRequest();
 
-            product.Name = updated.Name;
-            product.Price = updated.Price;
-            product.Stock = updated.Stock;
-            product.Description = updated.Description;
+            _context.Entry(product).State = EntityState.Modified;
 
-            _context.SaveChanges();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Products.Any(e => e.Id == id))
+                    return NotFound();
+                else
+                    throw;
+            }
 
-            return NoContent();
+            var dto = new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                Description = product.Description
+            };
+
+            return Ok(dto);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = _context.Products.Find(id);
-            if (product == null) return NotFound();
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+                return NotFound();
 
             _context.Products.Remove(product);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
             return NoContent();
         }
     }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OrderManagementAPI.Data;
+using OrderManagementAPI.DTOs;
 using OrderManagementAPI.Models;
 
 namespace OrderManagementAPI.Controllers
@@ -16,45 +18,89 @@ namespace OrderManagementAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(_context.Customers.ToList());
+        public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomersList()
+        {
+            return await _context.Customers
+                .Select(c => new CustomerDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Email = c.Email
+                })
+                .ToListAsync();
+        }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<ActionResult<CustomerDto>> GetCustomerById(int id)
         {
-            var customer = _context.Customers.Find(id);
-            return customer == null ? NotFound() : Ok(customer);
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null)
+                return NotFound();
+
+            return new CustomerDto
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Email = customer.Email
+            };
         }
 
         [HttpPost]
-        public IActionResult Create(Customer customer)
+        public async Task<ActionResult<CustomerDto>> PostCustomer(Customer customer)
         {
             _context.Customers.Add(customer);
-            _context.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new { id = customer.Id }, customer);
+            await _context.SaveChangesAsync();
+
+            var dto = new CustomerDto
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Email = customer.Email
+            };
+
+            return CreatedAtAction(nameof(GetCustomerById), new { id = customer.Id }, dto);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, Customer updated)
+        public async Task<ActionResult<CustomerDto>> PutCustomer(int id, Customer customer)
         {
-            var customer = _context.Customers.Find(id);
-            if (customer == null) return NotFound();
+            if (id != customer.Id)
+                return BadRequest();
 
-            customer.Name = updated.Name;
-            customer.Email = updated.Email;
-            customer.Address = updated.Address;
-            _context.SaveChanges();
+            _context.Entry(customer).State = EntityState.Modified;
 
-            return NoContent();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Customers.Any(e => e.Id == id))
+                    return NotFound();
+                else
+                    throw;
+            }
+
+            var dto = new CustomerDto
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Email = customer.Email
+            };
+
+            return Ok(dto);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> DeleteCustomer(int id)
         {
-            var customer = _context.Customers.Find(id);
-            if (customer == null) return NotFound();
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null)
+                return NotFound();
 
             _context.Customers.Remove(customer);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
             return NoContent();
         }
     }

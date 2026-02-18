@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path="OrderManagementAPI.http" />
+    <File Path="README.md" />
   </Folder>
   <Project Path="OrderManagementAPI/OrderManagementAPI.csproj" />
 </Solution>

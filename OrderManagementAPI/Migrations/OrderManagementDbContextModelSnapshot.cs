@@ -45,6 +45,22 @@ namespace OrderManagementAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "",
+                            Email = "alice@example.com",
+                            Name = "Alice Johnson"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Address = "",
+                            Email = "bob@example.com",
+                            Name = "Bob Smith"
+                        });
                 });
 
             modelBuilder.Entity("OrderManagementAPI.Models.Order", b =>
@@ -70,6 +86,15 @@ namespace OrderManagementAPI.Migrations
                     b.HasIndex("CustomerId");
 
                     b.ToTable("Orders");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CustomerId = 1,
+                            OrderDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Status = "Pending"
+                        });
                 });
 
             modelBuilder.Entity("OrderManagementAPI.Models.OrderItem", b =>
@@ -96,6 +121,22 @@ namespace OrderManagementAPI.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderItems");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            OrderId = 1,
+                            ProductId = 1,
+                            Quantity = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            OrderId = 1,
+                            ProductId = 2,
+                            Quantity = 2
+                        });
                 });
 
             modelBuilder.Entity("OrderManagementAPI.Models.Product", b =>
@@ -123,6 +164,24 @@ namespace OrderManagementAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "High performance laptop",
+                            Name = "Laptop",
+                            Price = 1200m,
+                            Stock = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Latest smartphone",
+                            Name = "Phone",
+                            Price = 800m,
+                            Stock = 0
+                        });
                 });
 
             modelBuilder.Entity("OrderManagementAPI.Models.Order", b =>

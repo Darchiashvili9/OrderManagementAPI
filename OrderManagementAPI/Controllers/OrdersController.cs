@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderManagementAPI.Data;
 using OrderManagementAPI.DTOs;
@@ -11,18 +12,19 @@ namespace OrderManagementAPI.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly OrderManagementDbContext _context;
+        private readonly IMapper _mapper;
 
-        public OrdersController(OrderManagementDbContext context)
+        public OrdersController(OrderManagementDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/orders
         [HttpGet]
-        [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersList()
         {
-            return await _context.Orders
+            var orders = await _context.Orders
                 .Include(o => o.Items)
                 .Select(order => new OrderDto
                 {
@@ -37,6 +39,8 @@ namespace OrderManagementAPI.Controllers
                     }).ToList()
                 })
                 .ToListAsync();
+
+            return Ok(_mapper.Map<IEnumerable<OrderDto>>(orders));
         }
 
         // GET: api/orders/5
@@ -50,79 +54,37 @@ namespace OrderManagementAPI.Controllers
             if (order == null)
                 return NotFound();
 
-            var dto = new OrderDto
-            {
-                Id = order.Id,
-                CustomerId = order.CustomerId,
-                OrderDate = order.OrderDate,
-                Status = order.Status,
-                Items = order.Items.Select(i => new OrderItemDto
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity
-                }).ToList()
-            };
-
-            return dto;
+            return Ok(_mapper.Map<OrderDto>(order));
         }
 
         // POST: api/orders
         [HttpPost]
-        public async Task<ActionResult<OrderDto>> PostOrder(Order order)
+        public async Task<ActionResult<OrderDto>> PostOrder(OrderDto orderDto)
         {
+            var order = _mapper.Map<Order>(orderDto);
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            var dto = new OrderDto
-            {
-                Id = order.Id,
-                CustomerId = order.CustomerId,
-                OrderDate = order.OrderDate,
-                Status = order.Status,
-                Items = order.Items.Select(i => new OrderItemDto
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity
-                }).ToList()
-            };
-
-            return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, dto);
+            var resultDto = _mapper.Map<OrderDto>(order);
+            return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, resultDto);
         }
 
         // PUT: api/orders/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<OrderDto>> PutOrder(int id, Order order)
+        public async Task<ActionResult<OrderDto>> PutOrder(int id, OrderDto orderDto)
         {
-            if (id != order.Id)
+            if (id != orderDto.Id)
                 return BadRequest();
 
-            _context.Entry(order).State = EntityState.Modified;
+            var existing = await _context.Orders.FindAsync(id);
+            if (existing == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Orders.Any(e => e.Id == id))
-                    return NotFound();
-                else
-                    throw;
-            }
+            _mapper.Map(orderDto, existing);
 
-            var dto = new OrderDto
-            {
-                Id = order.Id,
-                CustomerId = order.CustomerId,
-                OrderDate = order.OrderDate,
-                Status = order.Status,
-                Items = order.Items.Select(i => new OrderItemDto
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity
-                }).ToList()
-            };
+            await _context.SaveChangesAsync();
 
+            var dto = _mapper.Map<OrderDto>(existing);
             return Ok(dto);
         }
 

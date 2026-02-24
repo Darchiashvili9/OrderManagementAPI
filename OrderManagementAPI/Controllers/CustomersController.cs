@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderManagementAPI.Data;
 using OrderManagementAPI.DTOs;
@@ -11,23 +12,20 @@ namespace OrderManagementAPI.Controllers
     public class CustomersController : ControllerBase
     {
         private readonly OrderManagementDbContext _context;
+        private readonly IMapper _mapper;
 
-        public CustomersController(OrderManagementDbContext context)
+        public CustomersController(OrderManagementDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomersList()
         {
-            return await _context.Customers
-                .Select(c => new CustomerDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Email = c.Email
-                })
-                .ToListAsync();
+            var customers = await _context.Customers.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<CustomerDto>>(customers));
+
         }
 
         [HttpGet("{id}")]
@@ -37,28 +35,18 @@ namespace OrderManagementAPI.Controllers
             if (customer == null)
                 return NotFound();
 
-            return new CustomerDto
-            {
-                Id = customer.Id,
-                Name = customer.Name,
-                Email = customer.Email
-            };
+            return Ok(_mapper.Map<CustomerDto>(customer));
         }
 
         [HttpPost]
         public async Task<ActionResult<CustomerDto>> PostCustomer(Customer customer)
         {
-            _context.Customers.Add(customer);
+            var cust = _mapper.Map<Customer>(customer);
+            _context.Customers.Add(cust);
             await _context.SaveChangesAsync();
 
-            var dto = new CustomerDto
-            {
-                Id = customer.Id,
-                Name = customer.Name,
-                Email = customer.Email
-            };
-
-            return CreatedAtAction(nameof(GetCustomerById), new { id = customer.Id }, dto);
+            var resultDto = _mapper.Map<CustomerDto>(customer);
+            return CreatedAtAction(nameof(GetCustomerById), new { id = customer.Id }, resultDto);
         }
 
         [HttpPut("{id}")]
@@ -67,27 +55,15 @@ namespace OrderManagementAPI.Controllers
             if (id != customer.Id)
                 return BadRequest();
 
-            _context.Entry(customer).State = EntityState.Modified;
+            var existing = await _context.Customers.FindAsync(id);
+            if (existing == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Customers.Any(e => e.Id == id))
-                    return NotFound();
-                else
-                    throw;
-            }
+            _mapper.Map(customer, existing);
 
-            var dto = new CustomerDto
-            {
-                Id = customer.Id,
-                Name = customer.Name,
-                Email = customer.Email
-            };
+            await _context.SaveChangesAsync();
 
+            var dto = _mapper.Map<CustomerDto>(existing);
             return Ok(dto);
         }
 

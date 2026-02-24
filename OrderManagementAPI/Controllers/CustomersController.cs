@@ -39,10 +39,10 @@ namespace OrderManagementAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CustomerDto>> PostCustomer(Customer customer)
+        public async Task<ActionResult<CustomerDto>> PostCustomer(CustomerDto customerDto)
         {
-            var cust = _mapper.Map<Customer>(customer);
-            _context.Customers.Add(cust);
+            var customer = _mapper.Map<Customer>(customerDto);
+            _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
             var resultDto = _mapper.Map<CustomerDto>(customer);
@@ -50,16 +50,16 @@ namespace OrderManagementAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<CustomerDto>> PutCustomer(int id, Customer customer)
+        public async Task<ActionResult<CustomerDto>> PutCustomer(int id, CustomerDto customerDto)
         {
-            if (id != customer.Id)
+            if (id != customerDto.Id)
                 return BadRequest();
 
             var existing = await _context.Customers.FindAsync(id);
             if (existing == null)
                 return NotFound();
 
-            _mapper.Map(customer, existing);
+            _mapper.Map(customerDto, existing);
 
             await _context.SaveChangesAsync();
 

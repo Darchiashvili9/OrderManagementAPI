@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderManagementAPI.Data;
 using OrderManagementAPI.DTOs;
@@ -11,24 +12,19 @@ namespace OrderManagementAPI.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly OrderManagementDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ProductsController(OrderManagementDbContext context)
+        public ProductsController(OrderManagementDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsList()
         {
-            return await _context.Products
-                .Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Price = p.Price,
-                    Description = p.Description
-                })
-                .ToListAsync();
+            var product = await _context.Products.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<ProductDto>>(product));
         }
 
         [HttpGet("{id}")]
@@ -38,60 +34,35 @@ namespace OrderManagementAPI.Controllers
             if (product == null)
                 return NotFound();
 
-            return new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Price = product.Price,
-                Description = product.Description
-            };
+            return Ok(_mapper.Map<ProductDto>(product));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProductDto>> PostProduct(Product product)
+        public async Task<ActionResult<ProductDto>> PostProduct(ProductDto productDto)
         {
+            var product = _mapper.Map<Product>(productDto);
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            var dto = new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Price = product.Price,
-                Description = product.Description
-            };
-
-            return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, dto);
+            var resultDto = _mapper.Map<ProductDto>(product);
+            return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, resultDto);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ProductDto>> PutProduct(int id, Product product)
+        public async Task<ActionResult<ProductDto>> PutProduct(int id, ProductDto productDto)
         {
-            if (id != product.Id)
+            if (id != productDto.Id)
                 return BadRequest();
 
-            _context.Entry(product).State = EntityState.Modified;
+            var existing = await _context.Products.FindAsync(id);
+            if (existing == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Products.Any(e => e.Id == id))
-                    return NotFound();
-                else
-                    throw;
-            }
+            _mapper.Map(productDto, existing);
 
-            var dto = new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Price = product.Price,
-                Description = product.Description
-            };
+            await _context.SaveChangesAsync();
 
+            var dto = _mapper.Map<ProductDto>(existing);
             return Ok(dto);
         }
 

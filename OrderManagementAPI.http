@@ -14,6 +14,16 @@ Accept: application/json
   "email": "george@example.com",
   "address": "Tbilisi"
 }
+
+### Update an existing customer
+PUT {{OrderManagementAPI_HostAddress}}/customers/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Tmp Pro",
+  "email": "123@999.123"
+}
 ###
 
 
@@ -83,11 +93,11 @@ Content-Type: application/json
 }
 
 ### Update an existing order
-PUT {{OrderManagementAPI_HostAddress}}/orders/1
+PUT {{OrderManagementAPI_HostAddress}}/orders/7
 Content-Type: application/json
 
 {
-  "id": 1,
+  "id": 7,
   "customerId": 1,
   "orderDate": "2026-02-17T16:45:00",
   "status": "Shipped",

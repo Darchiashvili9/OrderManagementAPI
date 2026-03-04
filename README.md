@@ -1,13 +1,35 @@
 ## Order Management API
 
-This project implements a baseline CRUD API for managing Customers, Products, and Orders.
+## Overview
+A fullstack-ready ASP.NET Core Web API for managing Customers, Products, and Orders.  
+Includes DTOs, AutoMapper for clean mapping, and xUnit tests for reliability.
+
+
+## Tech Stack
+- **ASP.NET Core 8** (Web API)
+- **Entity Framework Core** (InMemory + SQL Server ready)
+- **AutoMapper** (DTO ↔ Entity mapping)
+- **xUnit + Moq** (unit testing)
+- **OpenAPI** (API documentation)
+
+
 
 ### Features
-- **Customers**: Create, read, update, delete
-- **Products**: Create, read, update, delete
-- **Orders**: Create, read, update, delete, with linked Customer and OrderItems
-- **DTOs**: All controllers return DTOs to ensure clean API responses and avoid serialization cycles
-- **Documentation**: Request examples for all endpoints are included in `OrderManagementAPI.http`
+- CRUD endpoints for Customers, Products, and Orders
+- DTOs for clean API contracts
+- AutoMapper integration for mapping
+- Global error handling middleware
+- Unit tests for controllers
+
+
+## Testing
+Unit tests are implemented with **xUnit**, **Moq**, and **EF Core InMemory**.
+
+### Run Tests
+```bash
+dotnet test
+
+
 
 ### Getting Started
 1. Clone the repo

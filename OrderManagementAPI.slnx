@@ -3,5 +3,6 @@
     <File Path="OrderManagementAPI.http" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="OrderManagementAPI.Tests/OrderManagementAPI.Tests.csproj" />
   <Project Path="OrderManagementAPI/OrderManagementAPI.csproj" />
 </Solution>

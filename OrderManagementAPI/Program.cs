@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using OrderManagementAPI.Data;
+using Serilog;
 using System.Text.Json;
 
 namespace OrderManagementAPI
@@ -23,6 +24,14 @@ namespace OrderManagementAPI
 
             builder.Services.AddAutoMapper(typeof(Program));
 
+            // Configure Serilog from appsettings.json
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)   // ✅ this is the right call
+                .CreateLogger();
+
+
+            builder.Host.UseSerilog();
+
             var app = builder.Build();
 
             app.UseExceptionHandler(errorApp =>
@@ -35,6 +44,7 @@ namespace OrderManagementAPI
                     var error = context.Features.Get<IExceptionHandlerFeature>();
                     if (error != null)
                     {
+                        Log.Error(error.Error, "Unhandled exception occurecd");
                         await context.Response.WriteAsync(
                             JsonSerializer.Serialize(new { message = error.Error.Message })
                         );
